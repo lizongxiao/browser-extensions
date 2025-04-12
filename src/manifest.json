@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "ScrollWebSizeTop",
+  "version": "1.0.0",
+  "description": "Chrome 扩展使用 Vue 3 和组合式 API 开发",
+  "icons": {
+    "16": "assets/icon.svg",
+    "48": "assets/icon.svg",
+    "128": "assets/icon.svg"
+  },
+  "background": {
+    "service_worker": "background/index.ts",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "16": "assets/icon.svg",
+      "48": "assets/icon.svg",
+      "128": "assets/icon.svg"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/index.ts"]
+    }
+  ],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+} 
