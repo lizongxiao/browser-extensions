@@ -1,42 +1,43 @@
 {
   "manifest_version": 3,
-  "name": "ScrollWebSizeTop",
+  "name": "Web Monitor",
   "version": "1.0.0",
-  "description": "Chrome 扩展使用 Vue 3 和组合式 API 开发",
+  "description": "Monitor changes in selected areas of web pages",
   "icons": {
-    "16": "assets/icon.svg",
-    "48": "assets/icon.svg",
-    "128": "assets/icon.svg"
+    "16": "src/assets/icon16.png",
+    "48": "src/assets/icon48.png",
+    "128": "src/assets/icon128.png"
   },
   "background": {
-    "service_worker": "background/index.ts",
+    "service_worker": "src/background/index.ts",
     "type": "module"
   },
   "action": {
-    "default_popup": "popup/index.html",
+    "default_popup": "src/popup/index.html",
     "default_icon": {
-      "16": "assets/icon.svg",
-      "48": "assets/icon.svg",
-      "128": "assets/icon.svg"
+      "16": "src/assets/icon16.png",
+      "48": "src/assets/icon48.png",
+      "128": "src/assets/icon128.png"
     }
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content/index.ts"]
+      "js": ["src/content/index.ts"]
     }
   ],
   "permissions": [
+    "activeTab",
+    "notifications",
     "storage",
-    "activeTab"
+    "scripting",
+    "contextMenus"
   ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "host_permissions": ["<all_urls>"],
   "web_accessible_resources": [
     {
       "resources": ["assets/*"],
       "matches": ["<all_urls>"]
     }
   ]
-} 
+}
