@@ -114,7 +114,7 @@ function activateCanvasMode() {
   instructions.style.top = "10px";
   instructions.style.left = "50%";
   instructions.style.transform = "translateX(-50%)";
-  instructions.style.backgroundColor = "rgba(128, 128, 128, 0.3)";
+  instructions.style.backgroundColor = "rgba(128, 128, 128)";
   instructions.style.color = "white";
   instructions.style.padding = "10px 15px";
   instructions.style.borderRadius = "5px";
@@ -150,6 +150,10 @@ function activateCanvasMode() {
   // 轨迹相关变量
   let isDrawing = false;
   let pathPoints: { x: number; y: number }[] = [];
+  
+  // 累计存储所有已选中的元素和对应的高亮元素
+  let allSelectedElements = new Map<Element, HTMLElement>();
+  let lastBoundingBox: any = null;
 
   // 绘制轨迹函数
   function drawPath() {
@@ -224,6 +228,9 @@ function activateCanvasMode() {
     // 计算包围框，但不显示绘制轨迹和选择框
     const boundingBox = getPathBoundingBox();
     if (boundingBox && ctx) {
+      // 保存最后的包围框用于区域选择
+      lastBoundingBox = boundingBox;
+      
       // 清除整个画布，隐藏绘制的轨迹
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
@@ -232,14 +239,60 @@ function activateCanvasMode() {
       
       // 标记区域内的HTML元素
       const elementsInBox = findElementsInBoundingBox(boundingBox);
-      if (elementsInBox.length > 0) {
-        // 添加确认取消按钮
-        addControlsToElements(boundingBox, elementsInBox);
-      } else {
-        // 如果没有找到合适的元素，使用原来的方式添加控制按钮
-        addControls(boundingBox);
-      }
+      
+      // 高亮显示找到的新元素并加入到累计集合中
+      const newHighlightedElements = highlightElements(elementsInBox, allSelectedElements);
+      
+      // 更新或创建控制按钮
+      updateControls(lastBoundingBox, allSelectedElements);
     }
+  }
+
+  // 高亮显示元素并将新元素添加到累计集合中
+  function highlightElements(elements: Element[], selectedMap: Map<Element, HTMLElement>): Element[] {
+    const newElements: Element[] = [];
+
+    for (const element of elements) {
+      // 检查元素是否已经被选中
+      if (selectedMap.has(element)) {
+        continue; // 如果已选中，跳过
+      }
+      
+      newElements.push(element);
+      const rect = element.getBoundingClientRect();
+
+      // 创建高亮边框
+      const highlightBox = document.createElement("div");
+      highlightBox.className = "web-update-alerts-element-highlight";
+      highlightBox.style.position = "absolute";
+      highlightBox.style.left = `${window.scrollX + rect.left - 2}px`;
+      highlightBox.style.top = `${window.scrollY + rect.top - 2}px`;
+      highlightBox.style.width = `${rect.width + 4}px`;
+      highlightBox.style.height = `${rect.height + 4}px`;
+      highlightBox.style.border = "2px dashed #4CAF50";
+      highlightBox.style.boxSizing = "border-box";
+      highlightBox.style.pointerEvents = "none";
+      highlightBox.style.zIndex = "2147483646";
+      document.body.appendChild(highlightBox);
+
+      // 为元素存储相关信息
+      (highlightBox as any).targetElement = {
+        element: element,
+        rect: rect,
+        info: {
+          tag: element.tagName,
+          id: element.id,
+          className: element.className,
+          text: element.textContent?.slice(0, 100),
+          xpath: getXPath(element),
+        },
+      };
+      
+      // 添加到累计集合
+      selectedMap.set(element, highlightBox);
+    }
+
+    return newElements;
   }
 
   // 键盘事件处理
@@ -359,130 +412,6 @@ function activateCanvasMode() {
     return result;
   }
 
-  // 为找到的元素添加控制按钮
-  function addControlsToElements(
-    boundingBox: {
-      left: number;
-      top: number;
-      width: number;
-      height: number;
-    },
-    elements: Element[]
-  ) {
-    // 为每个找到的元素添加高亮边框
-    const highlightedElements: HTMLElement[] = [];
-
-    for (const element of elements) {
-      const rect = element.getBoundingClientRect();
-
-      // 创建高亮边框
-      const highlightBox = document.createElement("div");
-      highlightBox.className = "web-update-alerts-element-highlight";
-      highlightBox.style.position = "absolute";
-      highlightBox.style.left = `${window.scrollX + rect.left - 2}px`;
-      highlightBox.style.top = `${window.scrollY + rect.top - 2}px`;
-      highlightBox.style.width = `${rect.width + 4}px`;
-      highlightBox.style.height = `${rect.height + 4}px`;
-      highlightBox.style.border = "2px dashed #4CAF50";
-      highlightBox.style.boxSizing = "border-box";
-      highlightBox.style.pointerEvents = "none";
-      highlightBox.style.zIndex = "2147483646";
-      document.body.appendChild(highlightBox);
-
-      highlightedElements.push(highlightBox);
-
-      // 为元素存储相关信息
-      (highlightBox as any).targetElement = {
-        element: element,
-        rect: rect,
-        info: {
-          tag: element.tagName,
-          id: element.id,
-          className: element.className,
-          text: element.textContent?.slice(0, 100),
-          xpath: getXPath(element),
-        },
-      };
-    }
-
-    // 如果找到了元素，添加控制按钮到第一个元素的顶部
-    if (highlightedElements.length > 0) {
-      const primaryElement = highlightedElements[0];
-      const targetData = (primaryElement as any).targetElement;
-
-      // 创建控制按钮容器，放在元素顶部
-      const controls = document.createElement("div");
-      controls.id = "web-update-alerts-controls";
-      controls.style.position = "absolute";
-      controls.style.left = `${targetData.rect.left + window.scrollX}px`;
-      controls.style.top = `${targetData.rect.top + window.scrollY - 40}px`; // 放在元素上方
-      controls.style.zIndex = "2147483647";
-      controls.style.backgroundColor = "#ffffff";
-      controls.style.border = "1px solid #4CAF50";
-      controls.style.borderRadius = "4px";
-      controls.style.padding = "5px";
-      controls.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.2)";
-      controls.style.display = "flex";
-      controls.style.gap = "5px";
-      document.body.appendChild(controls);
-
-      // 设置目标元素数量指示
-      const elementCountText = document.createElement("span");
-      elementCountText.textContent = `已选择 ${highlightedElements.length} 个元素`;
-      elementCountText.style.fontSize = "12px";
-      elementCountText.style.color = "#666";
-      elementCountText.style.alignSelf = "center";
-      elementCountText.style.marginRight = "10px";
-      controls.appendChild(elementCountText);
-
-      // 确认按钮
-      const confirmBtn = document.createElement("button");
-      confirmBtn.textContent = "监控选中元素";
-      confirmBtn.style.backgroundColor = "#4CAF50";
-      confirmBtn.style.color = "white";
-      confirmBtn.style.border = "none";
-      confirmBtn.style.padding = "5px 10px";
-      confirmBtn.style.borderRadius = "4px";
-      confirmBtn.style.cursor = "pointer";
-      confirmBtn.onclick = () => {
-        // 收集所有元素信息
-        const elementInfos = highlightedElements.map(
-          (el) => (el as any).targetElement.info
-        );
-
-        // 保存元素选择信息
-        saveElementSelection(elementInfos, boundingBox);
-
-        // 移除所有高亮和控制按钮
-        highlightedElements.forEach((el) => el.remove());
-        controls.remove();
-
-        // 清理
-        cleanUp();
-      };
-      controls.appendChild(confirmBtn);
-
-      // 取消按钮
-      const cancelBtn = document.createElement("button");
-      cancelBtn.textContent = "取消";
-      cancelBtn.style.backgroundColor = "#f44336";
-      cancelBtn.style.color = "white";
-      cancelBtn.style.border = "none";
-      cancelBtn.style.padding = "5px 10px";
-      cancelBtn.style.borderRadius = "4px";
-      cancelBtn.style.cursor = "pointer";
-      cancelBtn.onclick = () => {
-        // 移除所有高亮和控制按钮
-        highlightedElements.forEach((el) => el.remove());
-        controls.remove();
-
-        // 清理
-        cleanUp();
-      };
-      controls.appendChild(cancelBtn);
-    }
-  }
-
   // 保存元素选择信息
   function saveElementSelection(
     elementInfos: any[],
@@ -557,43 +486,100 @@ function activateCanvasMode() {
     return "/" + paths.join("/");
   }
 
-  // 添加控制按钮
-  function addControls(boundingBox: {
-    left: number;
-    top: number;
-    width: number;
-    height: number;
-  }) {
-    // 创建控制按钮容器
+  // 更新或创建控制按钮
+  function updateControls(
+    boundingBox: {
+      left: number;
+      top: number;
+      width: number;
+      height: number;
+    },
+    selectedMap: Map<Element, HTMLElement>
+  ) {
+    // 移除已有的控制按钮
+    const existingControls = document.getElementById("web-update-alerts-controls");
+    if (existingControls) {
+      existingControls.remove();
+    }
+    
+    // 创建控制按钮容器，放在屏幕右下角
     const controls = document.createElement("div");
     controls.id = "web-update-alerts-controls";
     controls.style.position = "fixed";
-    controls.style.left = `${boundingBox.left + boundingBox.width / 2 - 75}px`;
-    controls.style.top = `${boundingBox.top + boundingBox.height + 10}px`;
+    controls.style.right = "20px";
+    controls.style.bottom = "20px";
     controls.style.zIndex = "2147483647";
     controls.style.backgroundColor = "#ffffff";
     controls.style.border = "1px solid #cccccc";
     controls.style.borderRadius = "4px";
-    controls.style.padding = "5px";
+    controls.style.padding = "10px";
     controls.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.2)";
     controls.style.display = "flex";
-    controls.style.gap = "5px";
-    overlayContainer.appendChild(controls);
+    controls.style.flexDirection = "column";
+    controls.style.gap = "10px";
+    document.body.appendChild(controls);
 
-    // 确认按钮
-    const confirmBtn = document.createElement("button");
-    confirmBtn.textContent = "确认选择";
-    confirmBtn.style.backgroundColor = "#4CAF50";
-    confirmBtn.style.color = "white";
-    confirmBtn.style.border = "none";
-    confirmBtn.style.padding = "5px 10px";
-    confirmBtn.style.borderRadius = "4px";
-    confirmBtn.style.cursor = "pointer";
-    confirmBtn.onclick = () => {
+    // 显示选择信息
+    const totalSelectedElements = selectedMap.size;
+    
+    // 显示已选中的元素数量
+    const elementCountText = document.createElement("div");
+    elementCountText.textContent = `已累计选择 ${totalSelectedElements} 个元素`;
+    elementCountText.style.fontSize = "14px";
+    elementCountText.style.color = "#666";
+    elementCountText.style.marginBottom = "5px";
+    controls.appendChild(elementCountText);
+
+    if (totalSelectedElements > 0) {
+      // 监控选中元素按钮
+      const confirmElementsBtn = document.createElement("button");
+      confirmElementsBtn.textContent = "监控选中元素";
+      confirmElementsBtn.style.backgroundColor = "#4CAF50";
+      confirmElementsBtn.style.color = "white";
+      confirmElementsBtn.style.border = "none";
+      confirmElementsBtn.style.padding = "8px 15px";
+      confirmElementsBtn.style.borderRadius = "4px";
+      confirmElementsBtn.style.cursor = "pointer";
+      confirmElementsBtn.style.width = "100%";
+      confirmElementsBtn.onclick = () => {
+        // 收集所有元素信息
+        const elementInfos = Array.from(selectedMap.values()).map(
+          (el) => (el as any).targetElement.info
+        );
+
+        // 保存元素选择信息
+        saveElementSelection(elementInfos, boundingBox);
+
+        // 移除所有高亮
+        Array.from(selectedMap.values()).forEach((el) => el.remove());
+        controls.remove();
+
+        // 清理
+        cleanUp();
+      };
+      controls.appendChild(confirmElementsBtn);
+    }
+
+    // 监控选中区域按钮
+    const confirmRegionBtn = document.createElement("button");
+    confirmRegionBtn.textContent = totalSelectedElements > 0 ? "改为监控整个区域" : "监控选中区域";
+    confirmRegionBtn.style.backgroundColor = totalSelectedElements > 0 ? "#FF9800" : "#4CAF50";
+    confirmRegionBtn.style.color = "white";
+    confirmRegionBtn.style.border = "none";
+    confirmRegionBtn.style.padding = "8px 15px";
+    confirmRegionBtn.style.borderRadius = "4px";
+    confirmRegionBtn.style.cursor = "pointer";
+    confirmRegionBtn.style.width = "100%";
+    confirmRegionBtn.onclick = () => {
       saveSelection(boundingBox);
+      // 移除所有高亮
+      Array.from(selectedMap.values()).forEach((el) => el.remove());
+      // 清空选择集合
+      selectedMap.clear();
+      controls.remove();
       cleanUp();
     };
-    controls.appendChild(confirmBtn);
+    controls.appendChild(confirmRegionBtn);
 
     // 取消按钮
     const cancelBtn = document.createElement("button");
@@ -601,32 +587,51 @@ function activateCanvasMode() {
     cancelBtn.style.backgroundColor = "#f44336";
     cancelBtn.style.color = "white";
     cancelBtn.style.border = "none";
-    cancelBtn.style.padding = "5px 10px";
+    cancelBtn.style.padding = "8px 15px";
     cancelBtn.style.borderRadius = "4px";
     cancelBtn.style.cursor = "pointer";
-    cancelBtn.onclick = cleanUp;
+    cancelBtn.style.width = "100%";
+    cancelBtn.onclick = () => {
+      // 移除所有高亮元素
+      Array.from(selectedMap.values()).forEach((el) => el.remove());
+      // 清空选择集合
+      selectedMap.clear();
+      controls.remove();
+      // 清理
+      cleanUp();
+    };
     controls.appendChild(cancelBtn);
 
-    // 清除按钮
-    const clearBtn = document.createElement("button");
-    clearBtn.textContent = "重新绘制";
-    clearBtn.style.backgroundColor = "#2196F3";
-    clearBtn.style.color = "white";
-    clearBtn.style.border = "none";
-    clearBtn.style.padding = "5px 10px";
-    clearBtn.style.borderRadius = "4px";
-    clearBtn.style.cursor = "pointer";
-    clearBtn.onclick = () => {
-      // 移除控制按钮
-      controls.remove();
-      // 清除画布，重新开始
-      pathPoints = [];
-      if (ctx) {
-        ctx.fillStyle = "rgba(128, 128, 128, 0.1)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-    };
-    controls.appendChild(clearBtn);
+    // 清除所有选择按钮
+    if (totalSelectedElements > 0) {
+      const clearAllBtn = document.createElement("button");
+      clearAllBtn.textContent = "清除所有选择";
+      clearAllBtn.style.backgroundColor = "#9E9E9E";
+      clearAllBtn.style.color = "white";
+      clearAllBtn.style.border = "none";
+      clearAllBtn.style.padding = "8px 15px";
+      clearAllBtn.style.borderRadius = "4px";
+      clearAllBtn.style.cursor = "pointer";
+      clearAllBtn.style.width = "100%";
+      clearAllBtn.onclick = () => {
+        // 移除所有高亮元素
+        Array.from(selectedMap.values()).forEach((el) => el.remove());
+        // 清空选择集合
+        selectedMap.clear();
+        // 隐藏控制按钮
+        controls.remove();
+        
+        // 恢复画布以便重新选择
+        pathPoints = [];
+        if (ctx) {
+          canvas.style.backgroundColor = "transparent";
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "rgba(128, 128, 128, 0.3)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      };
+      controls.appendChild(clearAllBtn);
+    }
   }
 
   // 保存选择信息
