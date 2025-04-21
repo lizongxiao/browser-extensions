@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Web Monitor",
+  "name": "web-update-alerts",
   "version": "1.0.0",
-  "description": "Monitor changes in selected areas of web pages",
+  "description": "web-update-alerts",
   "icons": {
     "16": "src/assets/icon16.png",
     "48": "src/assets/icon48.png",
