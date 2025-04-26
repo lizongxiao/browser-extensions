@@ -4,8 +4,6 @@ pnpm-lock.yaml
 # 构建输出
 /dist
 
-mf3
-
 # 日志
 npm-debug.log*
 yarn-debug.log*
