@@ -47,7 +47,14 @@ async function startDevServer() {
 
 // src目录下的文件所有文件
 const watchFiles = [
-  'src/**/**'
+  'src/**/*.ts',
+  'src/**/*.tsx',
+  'src/**/*.js',
+  'src/**/*.jsx',
+  'src/**/*.vue',
+  'src/**/*.css',
+  'src/**/*.scss',
+  'src/**/*.html'
 ]
 
 async function main() {
@@ -135,7 +142,13 @@ export const RELOAD = 'RELOAD';`
 
   // 监听文件变化 - 仅监听关键文件以触发热重载通知（可根据需要添加更多文件）
   const watcher = chokidar.watch(watchFiles, {
-    ignored: ['**/node_modules/**', '**/dist/**'],
+    ignored: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/DumpStack.log*',
+      'C:\\DumpStack.log.tmp',
+      '**/System Volume Information/**'
+    ],
     ignoreInitial: true
   });
 
@@ -181,7 +194,7 @@ export const RELOAD = 'RELOAD';`
 
         // 通知客户端更新
         notifyUpdate();
-        console.log('✅ 已通知客户端更新 ');
+        // console.log('✅ 已通知客户端更新 ');
       } catch (error) {
         console.error('🔴 更新过程中出错 :', error);
       }

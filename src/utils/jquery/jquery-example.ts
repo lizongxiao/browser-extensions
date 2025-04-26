@@ -1,4 +1,4 @@
-import { $j } from "@/utils/jquery";
+import { $j } from "@/utils/jquery/jquery";
 
 // 示例：当DOM加载完成后执行
 $j(document).ready(function () {

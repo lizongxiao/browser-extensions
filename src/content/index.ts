@@ -5,6 +5,5 @@
  */
 
 import "./scripts/addListener";
-import "./jquery-example";
 
 console.log("开始加载内容脚本");
