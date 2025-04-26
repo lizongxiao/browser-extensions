@@ -36,7 +36,7 @@ async function buildDevScripts() {
     // 检查constants.ts文件是否存在
     const constantsFile = resolve(__dirname, '../src/dev/constants.ts');
     if (!fs.existsSync(constantsFile)) {
-      console.error('constants.ts文件不存在，请先运行开发服务器');
+      console.error('🔴 constants.ts文件不存在，请先运行开发服务器 ');
       process.exit(1);
     }
 
@@ -74,9 +74,9 @@ async function buildDevScripts() {
       }
     });
 
-    console.log('开发脚本编译完成');
+    console.log('✅ 开发脚本编译完成 ');
   } catch (error) {
-    console.error('编译开发脚本时出错:', error);
+    console.error('🔴 编译开发脚本时出错 :', error);
     console.error(error.stack);
     process.exit(1);
   }

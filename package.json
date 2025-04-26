@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.js",
+    "build": "vite build",
     "watch": "vite build --watch",
     "build-dev-scripts": "node scripts/build-dev-scripts.js"
   },
