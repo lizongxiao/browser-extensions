@@ -1,7 +1,14 @@
-import { DEV_SERVER_PORT, EXTENSION_NAME, UPDATE_CONTENT, RELOAD } from './constants';
+import {
+  DEV_SERVER_PORT,
+  EXTENSION_NAME,
+  UPDATE_CONTENT,
+  RELOAD,
+} from "./constants";
 
 // 创建WebSocket连接
-const ws = new WebSocket(`ws://localhost:${DEV_SERVER_PORT}/${encodeURIComponent(EXTENSION_NAME)}/crx`);
+const ws = new WebSocket(
+  `ws://localhost:${DEV_SERVER_PORT}/${encodeURIComponent(EXTENSION_NAME)}/crx`
+);
 let pingTimer: number | undefined;
 
 // 连接建立时
@@ -11,7 +18,7 @@ ws.onopen = () => {
   }
   // 每5秒发送一次ping消息，保持连接活跃
   pingTimer = setInterval(() => {
-    ws.send(JSON.stringify({ type: 'ping' }));
+    ws.send(JSON.stringify({ type: "ping" }));
   }, 5000) as unknown as number;
 };
 
@@ -31,4 +38,4 @@ ws.onclose = () => {
   if (pingTimer) {
     clearInterval(pingTimer);
   }
-}; 
+};

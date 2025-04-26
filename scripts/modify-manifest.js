@@ -35,7 +35,7 @@ function modifyManifest() {
 
   // 检查manifest.json是否存在
   if (!fs.existsSync(manifestPath)) {
-    console.error('manifest.json不存在，请先构建项目');
+    console.error('🔴 manifest.json不存在，请先构建项目 ');
     process.exit(1);
   }
 
@@ -54,14 +54,14 @@ function modifyManifest() {
       // 处理后台脚本配置
       handleBackgroundScript(manifest);
 
-      console.log('已添加热重载脚本到manifest');
+      console.log('✅ 已添加热重载脚本到manifest ');
     }
 
     // 写回修改后的manifest
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-    console.log('已更新manifest.json');
+    console.log('✅ 已更新manifest.json');
   } catch (error) {
-    console.error('修改manifest时出错:', error);
+    console.error('🔴 修改manifest时出错 :', error);
     process.exit(1);
   }
 }

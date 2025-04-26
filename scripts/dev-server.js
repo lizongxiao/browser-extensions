@@ -34,7 +34,7 @@ function createServer(port) {
   return new Promise((resolve, reject) => {
     const onError = (e) => {
       if (e.code === 'EADDRINUSE') {
-        console.log(`端口 ${port} 已被占用，尝试下一个端口...`);
+        console.log(`🔴 端口 ${port} 已被占用，尝试下一个端口...`);
         server.listen(++port);
       } else {
         server.removeListener('error', onError);
@@ -44,7 +44,7 @@ function createServer(port) {
 
     server.on('error', onError);
     server.listen(port, () => {
-      console.log(`WebSocket 服务器已启动，端口: ${port}`);
+      console.log(`🉑 WebSocket 服务器已启动，端口: ${port}`);
       server.removeListener('error', onError);
       resolve({ server, port });
     });
@@ -66,7 +66,7 @@ async function startDevServer() {
 
   // 处理WebSocket连接
   wss.on('connection', (ws) => {
-    console.log('客户端已连接');
+    console.log('🚀 客户端已连接 ');
     socket = ws;
 
     // 处理客户端消息
@@ -83,7 +83,7 @@ async function startDevServer() {
 
     // 处理连接关闭
     ws.on('close', () => {
-      console.log('客户端已断开连接');
+      // console.log('🔴 客户端已断开连接 ');
       socket = null;
     });
   });
@@ -109,7 +109,7 @@ async function startDevServer() {
     notifyUpdate: () => {
       if (socket) {
         socket.send(UPDATE_CONTENT);
-        console.log('通知客户端更新');
+        // console.log('✅ 通知客户端更新 ');
       }
     },
     port

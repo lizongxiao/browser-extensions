@@ -1,16 +1,13 @@
 <template>
-  <div class="container">Popup</div>
+  <div class="container" v-for="item in 10" :key="item.id">
+    <div>{{ item }}</div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-
+import { onMounted } from "vue";
 interface Props {
   msg?: string;
-}
-
-interface Emits {
-  (e: "change", value: string): void;
 }
 
 defineOptions({
@@ -22,21 +19,8 @@ withDefaults(defineProps<Props>(), {
   msg: "default value",
 });
 
-const emit = defineEmits<Emits>();
-
-const count = ref(0);
-
-const increment = () => {
-  count.value++;
-  emit("change", `Count is: ${count.value}`);
-};
-
 onMounted(() => {
   console.log("加载弹出页");
-});
-
-defineExpose({
-  increment,
 });
 </script>
 

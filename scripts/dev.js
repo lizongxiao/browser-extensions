@@ -44,6 +44,12 @@ async function startDevServer() {
  * 5. 修改manifest
  * 6. 监听文件变化
  */
+
+// src目录下的文件所有文件
+const watchFiles = [
+  'src/**/**'
+]
+
 async function main() {
   // 设置环境变量
   process.env.NODE_ENV = 'development';
@@ -69,7 +75,7 @@ export const RELOAD = 'RELOAD';`
   );
 
   // 使用exec替代spawn来运行pnpm命令
-  console.log('启动Vite构建扩展...');
+  console.log('⚙️  启动Vite构建扩展... ');
   const buildProcess = exec('npx vite build --watch', {
     windowsHide: false
   });
@@ -78,38 +84,38 @@ export const RELOAD = 'RELOAD';`
 
   // 监听构建输出和错误
   buildProcess.stderr.on('data', (data) => {
-    console.error(`构建错误: ${data}`);
+    console.error(`🔴 构建错误 : ${data}`);
     buildProcessFailed = true;
   });
 
   buildProcess.stdout.on('data', (data) => {
-    console.log(`构建输出: ${data}`);
+    // console.log(`🔄 构建输出 : ${data}`);
   });
 
   buildProcess.on('error', (error) => {
-    console.error('构建过程启动失败:', error);
+    console.error('🔴 构建过程启动失败 :', error);
     process.exit(1);
   });
 
   // 等待初始构建完成
-  console.log('等待初始构建完成...');
+  console.log('⌛️ 等待初始构建完成... ');
   await new Promise(resolve => setTimeout(resolve, 10000));
 
   if (buildProcessFailed) {
-    console.error('构建过程失败，终止热重载');
+    console.error('🔴 构建过程失败，终止热重载 ');
     process.exit(1);
   }
 
   // 构建开发脚本
-  console.log('编译开发脚本...');
+  console.log('⚙️  编译开发脚本... ');
   await new Promise((resolve, reject) => {
     exec('node scripts/build-dev-scripts.js', (error) => {
       if (error) {
-        console.error('编译开发脚本失败:', error);
+        console.error('🔴 编译开发脚本失败 :', error);
         reject(error);
         return;
       }
-      console.log('开发脚本编译完成');
+      console.log('✅ 开发脚本编译完成 ');
       resolve();
     });
   });
@@ -118,22 +124,17 @@ export const RELOAD = 'RELOAD';`
   await new Promise((resolve, reject) => {
     exec('node scripts/modify-manifest.js --dev', (error) => {
       if (error) {
-        console.error('修改manifest失败:', error);
+        console.error('🔴 修改manifest失败 :', error);
         reject(error);
         return;
       }
-      console.log('热重载脚本已添加');
+      console.log('✅ 热重载脚本已添加 ');
       resolve();
     });
   });
 
-  // 监听文件变化 - 仅监听关键文件以触发热重载通知
-  const watcher = chokidar.watch([
-    'src/background/**/*.{js,ts}',
-    'src/content/**/*.{js,ts,vue}',
-    'src/utils/**/*.{js,ts}',
-    'src/components/**/*.{js,ts,vue}'
-  ], {
+  // 监听文件变化 - 仅监听关键文件以触发热重载通知（可根据需要添加更多文件）
+  const watcher = chokidar.watch(watchFiles, {
     ignored: ['**/node_modules/**', '**/dist/**'],
     ignoreInitial: true
   });
@@ -148,7 +149,7 @@ export const RELOAD = 'RELOAD';`
    * 4. 通知客户端更新
    */
   watcher.on('change', (path) => {
-    console.log(`文件变更: ${path}`);
+    console.log(`🔄 文件变更 : ${path}`);
 
     // 防抖：避免短时间内多次通知
     clearTimeout(notifyTimeout);
@@ -158,7 +159,7 @@ export const RELOAD = 'RELOAD';`
         await new Promise((resolve, reject) => {
           exec('node scripts/build-dev-scripts.js', (error) => {
             if (error) {
-              console.error('编译开发脚本失败:', error);
+              console.error('🔴 编译开发脚本失败 :', error);
               reject(error);
               return;
             }
@@ -170,7 +171,7 @@ export const RELOAD = 'RELOAD';`
         await new Promise((resolve, reject) => {
           exec('node scripts/modify-manifest.js --dev', (error) => {
             if (error) {
-              console.error('修改manifest失败:', error);
+              console.error('🔴 修改manifest失败 :', error);
               reject(error);
               return;
             }
@@ -180,15 +181,15 @@ export const RELOAD = 'RELOAD';`
 
         // 通知客户端更新
         notifyUpdate();
-        console.log('已通知客户端更新');
+        console.log('✅ 已通知客户端更新 ');
       } catch (error) {
-        console.error('更新过程中出错:', error);
+        console.error('🔴 更新过程中出错 :', error);
       }
     }, 300);
   });
 
-  console.log('文件监视器已启动，等待文件变更...');
-  console.log('请加载扩展并打开带有扩展内容的网页以建立WebSocket连接');
+  console.log('⌛️ 文件监视器已启动，等待文件变更... ');
+  console.log('🐛 请加载扩展并打开带有扩展内容的网页(或刷新页面)以建立WebSocket连接 ');
 
   // 处理进程退出
   ['SIGINT', 'SIGTERM'].forEach(signal => {
@@ -197,7 +198,7 @@ export const RELOAD = 'RELOAD';`
         buildProcess.kill();
         process.exit(0);
       } catch (e) {
-        console.error('关闭时出错:', e);
+        console.error('🔴 关闭时出错 :', e);
         process.exit(1);
       }
     });
