@@ -185,7 +185,7 @@ export const RELOAD = 'RELOAD';`
       } catch (error) {
         console.error('🔴 更新过程中出错 :', error);
       }
-    }, 300);
+    }, 1000);
   });
 
   console.log('⌛️ 文件监视器已启动，等待文件变更... ');
