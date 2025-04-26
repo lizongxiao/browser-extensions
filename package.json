@@ -3,11 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "node scripts/dev.js",
     "watch": "vite build --watch",
-    "clean": "rimraf dist",
-    "hot-reload": "node scripts/dev.js",
     "build-dev-scripts": "node scripts/build-dev-scripts.js"
   },
   "keywords": [],
