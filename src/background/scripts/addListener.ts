@@ -1,4 +1,3 @@
-import { reloadExtension } from "./reloadExtension";
 import { saveSelection } from "./savedSelections";
 import { createContextMenu } from "./contextMenus";
 
@@ -10,11 +9,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.action === "checkAlive") {
     // 响应存活检查
     sendResponse({ status: "alive" });
-    return true;
-  } else if (message.action === "reloadExtension") {
-    // 处理重新加载扩展的请求
-    console.log("收到重新加载扩展的请求");
-    reloadExtension();
     return true;
   }
 });
