@@ -1,5 +1,7 @@
 // 存储已保存的选择区域
-let savedSelections: any[] = [];
+import { MonitoringItem } from "../../types/monitoringTypes";
+
+let savedSelections: MonitoringItem[] = [];
 
 // 加载保存的选择区域
 chrome.storage.local.get("savedSelections", (result) => {
@@ -22,7 +24,7 @@ export function saveSelection(
   selection.timestamp = new Date().toISOString();
 
   // 添加到存储
-  savedSelections.push(selection);
+  savedSelections.push(selection as MonitoringItem);
 
   // 保存到 Chrome 存储
   chrome.storage.local.set(

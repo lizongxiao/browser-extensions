@@ -335,6 +335,19 @@ export function activateCanvasMode() {
       height: number;
     }
   ) {
+    // 获取每个元素的HTML内容
+    const elementsWithHTML = elementInfos.map(info => {
+      // 使用XPath查找元素
+      const element = getElementByXPath(info.xpath);
+      const htmlContent = element ? element.outerHTML : '';
+      
+      return {
+        ...info,
+        html: htmlContent, // 保存元素的HTML内容
+        innerText: element ? element.textContent : ''
+      };
+    });
+
     // 添加滚动位置，转换为页面绝对位置
     const selection = {
       left: boundingBox.left + window.scrollX,
@@ -345,8 +358,12 @@ export function activateCanvasMode() {
         x: p.x + window.scrollX,
         y: p.y + window.scrollY,
       })),
-      elements: elementInfos,
+      elements: elementsWithHTML,
+      url: window.location.href, // 保存当前页面URL
+      title: document.title, // 保存页面标题
       selectionType: "elements",
+      lastCheck: new Date().toISOString(), // 添加最后检查时间
+      lastContent: elementsWithHTML.map(el => el.html).join(''), // 用于对比变化
     };
 
     console.log("保存元素选择:", selection);
@@ -356,6 +373,23 @@ export function activateCanvasMode() {
       action: "saveSelection",
       selection: selection,
     });
+  }
+
+  // 根据XPath获取元素
+  function getElementByXPath(xpath: string): Element | null {
+    try {
+      const result = document.evaluate(
+        xpath, 
+        document, 
+        null, 
+        XPathResult.FIRST_ORDERED_NODE_TYPE, 
+        null
+      );
+      return result.singleNodeValue as Element;
+    } catch (e) {
+      console.error("XPath解析错误:", e);
+      return null;
+    }
   }
 
   // 获取元素的XPath
@@ -558,6 +592,42 @@ export function activateCanvasMode() {
     width: number;
     height: number;
   }) {
+    // 获取选定区域内的HTML内容
+    const regionElement = document.elementFromPoint(
+      boundingBox.left + boundingBox.width / 2,
+      boundingBox.top + boundingBox.height / 2
+    );
+    
+    // 尝试找到最接近选定区域的容器元素
+    let targetElement = regionElement;
+    let closestContainer = regionElement;
+    
+    if (regionElement) {
+      // 向上查找可能的容器元素
+      let currentEl = regionElement;
+      while (currentEl && currentEl !== document.body) {
+        const rect = currentEl.getBoundingClientRect();
+        const isContainer = (
+          rect.width >= boundingBox.width * 0.8 && 
+          rect.height >= boundingBox.height * 0.8 &&
+          rect.width <= boundingBox.width * 1.5 && 
+          rect.height <= boundingBox.height * 1.5
+        );
+        
+        if (isContainer) {
+          closestContainer = currentEl;
+          break;
+        }
+        currentEl = currentEl.parentElement as Element;
+      }
+      
+      targetElement = closestContainer || regionElement;
+    }
+    
+    // 获取区域HTML内容
+    const regionHTML = targetElement ? targetElement.outerHTML : '';
+    const regionInnerText = targetElement ? targetElement.textContent : '';
+
     // 添加滚动位置，转换为页面绝对位置
     const selection = {
       left: boundingBox.left + window.scrollX,
@@ -568,7 +638,13 @@ export function activateCanvasMode() {
         x: p.x + window.scrollX,
         y: p.y + window.scrollY,
       })),
+      url: window.location.href, // 保存当前页面URL
+      title: document.title, // 保存页面标题
       selectionType: "region",
+      html: regionHTML, // 保存区域的HTML内容
+      innerText: regionInnerText, // 保存区域的文本内容
+      lastCheck: new Date().toISOString(), // 添加最后检查时间
+      lastContent: regionHTML, // 用于对比变化
     };
 
     console.log("保存区域选择:", selection);
