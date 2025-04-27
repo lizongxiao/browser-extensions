@@ -35,6 +35,15 @@
     "contextMenus",
     "tabs"
   ],
+  "commands": {
+    "activateSelectMode": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "Command+Shift+U"
+      },
+      "description": "激活选择模式"
+    }
+  },
   "host_permissions": ["<all_urls>"],
   "web_accessible_resources": [
     {

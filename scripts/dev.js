@@ -54,7 +54,13 @@ const watchFiles = [
   'src/**/*.vue',
   'src/**/*.css',
   'src/**/*.scss',
-  'src/**/*.html'
+  'src/**/*.html',
+  'src/**/*.json',
+  'src/**/*.png',
+  'src/**/*.jpg',
+  'src/**/*.jpeg',
+  'src/**/*.gif',
+  'src/**/*.svg',
 ]
 
 async function main() {
