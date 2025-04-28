@@ -15,10 +15,33 @@ export default defineConfig({
       "@": resolve(__dirname, "src"),
     },
   },
+  server: {
+    watch: {
+      // 忽略 Windows 系统文件，避免 EBUSY 错误
+      ignored: [
+        "**/node_modules/**",
+        "**/dist/**",
+        "C:/DumpStack.log.tmp",
+        "**/DumpStack.log.tmp",
+        "C:\\DumpStack.log.tmp",
+        "**\\DumpStack.log.tmp",
+      ],
+    },
+  },
   build: {
     outDir: "dist",
     emptyOutDir: true,
     rollupOptions: {
+      watch: {
+        exclude: [
+          "**/node_modules/**",
+          "**/dist/**",
+          "C:/DumpStack.log.tmp",
+          "**/DumpStack.log.tmp",
+          "C:\\DumpStack.log.tmp",
+          "**\\DumpStack.log.tmp",
+        ],
+      },
       output: {
         chunkFileNames: (chunk) => {
           const moduleId = chunk.facadeModuleId || "";
