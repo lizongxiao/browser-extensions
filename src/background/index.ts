@@ -2,6 +2,7 @@
 import "./scripts/savedSelections";
 import "./scripts/addListener";
 import "./scripts/shortcutKey";
+import "./scripts/updateBadge";
 import initElementChecker from "./scripts/elementChecker";
 
 console.log("开始加载背景脚本");
