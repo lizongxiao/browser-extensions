@@ -1,8 +1,10 @@
 # 依赖
 /node_modules
-
+pnpm-lock.yaml
 # 构建输出
 /dist
+
+mf3
 
 # 日志
 npm-debug.log*
